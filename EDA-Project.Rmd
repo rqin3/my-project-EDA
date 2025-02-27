@@ -1,0 +1,174 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(nnet)
+```
+# **Analysis into Demographic Factors Influencing Access to Healthcare Insurance**
+### By Sean Lee, Richard Qin, and Kenneth Lim
+
+
+## Introduction to the Dataset
+
+### The dataset used for this exploratory data analysis (EDA) is the Annual Social and Economic Supplement (ASEC) 2024 of the Current Population Survey (CPS). Administered by the U.S. Census Bureau and the Bureau of Labor Statistics (BLS) yearly, the ASEC dataset is a very comprehensive source of information about income, poverty, health insurance coverage, and various demographic details across the United States. It provides detailed insights into socio-economic factors influencing American households and offers a snapshot of the financial and social well-being of the population. Moreover, the bureau's information covers demographic factors from the highest level of education obtained by individuals within the household to the location of each residence. 
+
+## Scope:
+### The ASEC 2024 dataset contains household-level information covering variables related to health insurance coverage, income levels, household composition, and geographic identifiers such as metropolitan status. Given its national scope and large sample size, the dataset provides reliable insights into socio-economic patterns across different household types. With particular attention to urban-rural disparities, the dataset allows researchers to uncover trends that could influence public policy and resource allocation.
+
+## Ethical Considerations:
+### Although the dataset is publicly available and anonymized to protect the privacy of respondents, researchers must approach the analysis responsibly. Misrepresenting results, overlooking potential biases, or using the data to reinforce stereotypes about rural or urban communities should be avoided. Additionally, it's essential to consider factors such as underreporting of income or access disparities due to systemic inequalities. It is the responsibility of researchers to recognize and account for social and economic factors that could influence both the dataset and the interpretation of its results.
+
+## Purpose of the Analysis:
+### Our group’s interest lies in the healthcare system, more specifically the different factors that influence a population’s ability to access affordable healthcare. Thus, in order to understand the different barriers that individuals face when trying to obtain quality care, it is important to take into consideration the different demographic factors specifically within the United States of America. Moreover, given that these dynamics continuously change, our group is motivated to understand how the most recent census data reflects how accessible healthcare is through the mode of health insurance. As health insurance typically dictates an individual’s ability to obtain care from many medical practices and clinics, it’s important to analyze who has health insurance coverage and the different factors that influence the health insurance coverage itself. Hence, this analysis is centered around understanding the in-depth variables that indicate an individual’s health insurance status.
+### The primary goal of this analysis is to investigate disparities in health insurance coverage between urban and rural households. Specifically, the focus will be on:
+#### Identifying the distribution of health insurance coverage (full, partial, or none) across urban and rural settings.
+#### Exploring how household income, age, and gender influence insurance coverage in different geographic regions.
+#### Understanding how demographic factors such as household size, employment status, and educational attainment impact coverage.
+
+### The dataset is read into the R environment using standard functions from the tidyverse library:
+```{r}
+data=read.csv("data/asecpub24csv/hhpub24.csv")
+
+```
+
+## Identifying Variables for Analysis:
+### Key variables for this analysis include:
+
+#### GTMETSTA: Metropolitan status of the household (urban or rural classification).
+#### HMCAID: Current Medicaid Coverage
+#### HPRIV: Private Insurance coverage in the previous year
+#### PRIV: Current Private Insurance Coverage
+#### HCOV: Health insurance coverage in the previous year (fully covered, partially covered, not covered).
+#### NOW_HCOV: Current Health Insurance Coverage
+#### HEFAMINC: Total family income.
+
+### The dataset is filtered to only include relevant variables that are determined to be key indicators of medical insurance coverage for the United States population in 2024. In the command, it first filters the major dataset and then keeps the relevant variables listed above using the select function. Next, all of the data points that do not contain any of the selected variables are omitted and removed from the dataset. Thus, creating a more concise dataset that will be used for further analysis of how each factor influences an individual’s health insurance coverage. 
+
+```{r}
+#Selecting and renaming column titles
+filtered_dta=data %>% 
+  select(Metro_Status = GTMETSTA, 
+         Previous_Private_Insurance = HPRIV, 
+         Current_Private_Insurance = NOW_HPRIV, 
+         Family_Income = HEFAMINC, 
+         Public_Insurance = HPUB, 
+         Medicaid_Coverage = HMCAID, 
+         Current_Health_Insurance = NOW_HCOV, 
+         Previous_Health_Insurance=HCOV) %>%
+  na.omit() 
+
+write.csv(filtered_dta, "data/asecpub24csv/cleaned_data.csv", row.names=F)
+```
+
+
+### The following data is now used to remove rows where metro status and Medicaid are undetermined. The first step of this procedure would be to indicate where the metro status is 3, then check if any of these rows are in the dataset before finally removing the data from the dataset. The next set of this procedure uses the same code, except when Medicaid coverage is 0, it will remove the rows from the column. Finally, with the last few steps of the code, it will remove the rows that obtain a variable of Family Income equalling a value of -1. 
+
+```{r}
+#Removing Metro Status that equal 3 (unknown)
+remove_metro=which(filtered_dta$Metro_Status==3)
+if(length(remove_metro)>0){
+filtered_dta=filtered_dta[-remove_metro,]
+}
+
+#Removing Medicaid Status that equal 0 (unknown)
+remove_medicaid=which(filtered_dta$Medicaid_Coverage==0)
+if(length(remove_medicaid)>0){
+filtered_dta=filtered_dta[-remove_medicaid,]
+}
+
+#Removing family income that equal -1 (unknown)
+remove_income=which(filtered_dta$Family_Income==-1)
+if(length(remove_income)>0){
+filtered_dta=filtered_dta[-remove_income,]
+}
+```
+
+### The code shown below is first cleaning Family_Income so that <$75,000 is 1, >=$75,000 is 2. It first initially ensures that all the values within the variable Family_Income are numeric variables before classifying those that make above or equal to $75,000 as a value of 2 and those that make less than $75,000 as equal to a value of 1. After cleaning the Family_Income variable, the code then replaces those within the column Metro_Status with categorical variables rather than numerical variables. Moreover, the value of Metro_Status being equal to 1 is now categorized as “Metropolitan”, while any other value is “Non-Metropolitan”. By doing so, it allows the cleaned data to become more clear without the need of a codebook to differentiate between the numerical values. Afterwards, the values of Family_Income are reclassified into categorical variables from numerical variables as the representation of the values 1 and 2 are categorical instead of numerical. This is in part due to the significance that the values within the Family_Income represent ranges rather than specific values in the dataset for the Family_Income column. The following code then recodes the Medicaid_Coverage column for easier interpretation from numerical values to categorical information. Thus, it changes the value of 1 to full Medicaid coverage, 2 to partial medicaid coverage, and 3 to no medicaid coverage. This process of recoding numerical variables into more interpretable data points was then performed on the Current_Health_Insurance column. For each of the following values of numerical variables, it was converted to the categorical value. The end result would therefore be the value 3 being changed to no health insurance, the value 2 representing partial health insurance, and the value 0 showing full health insurance. 
+
+```{r}
+#Separating Family Income into binary variables where everything equal to and below 13 is 1 and everything above 13 is 2. 
+filtered_dta$Family_Income=ifelse(as.numeric(filtered_dta$Family_Income)<=13,1,2)
+
+#Creating a new dataset with every column needed as factors
+clean_dta=filtered_dta %>%
+  mutate(
+    Metro_Status=ifelse(Metro_Status==1, 
+                        "Metropolitan", 
+                        "Non-Metropolitan"),
+    Family_Income=as.factor(Family_Income),
+    Medicaid_Coverage=factor(Medicaid_Coverage,
+                        levels=c(1,2,3),
+                        labels=c("All", 
+                                 "Some", 
+                                 "None")),
+    Current_Health_Insurance=factor(Current_Health_Insurance,
+                        levels=c(3,2,1),
+                        labels=c("None",
+                                 "Some", 
+                                  "All"))
+  )
+```
+
+#This code calculates the number and proportion of people who live in Metropolitan vs Non-metropolitan, None/Some/All family members Health Insurance, and Less than or greater than $75,000 Fmamily income. From the results, we see that this dataset has more people living in metropolitan areas. 88% of families have insurance for all family members. Lastly, the proportion of families who make under/over $75,000 is around even. 
+```{r}
+#Creating tables and proportion tables for Metro_Status, Current_Health_Insurance
+
+table(clean_dta$Metro_Status)
+prop.table(table(clean_dta$Metro_Status))
+
+table(clean_dta$Current_Health_Insurance)
+prop.table(table(clean_dta$Current_Health_Insurance))
+
+#Family_Income (1: <=75,000, 2: >75,000)
+table(clean_dta$Family_Income)
+prop.table(table(clean_dta$Family_Income))
+```
+
+
+### The following code performs a multinomial logistic regression model. Essentially, how this regression model functions is that it uses two or more categorical independent variables that do not have a natural order to determine the dependent variable. In this specific model for analysis, the categorical dependent variable, or the outcome being predicted, is the Current_Health_Insurance which has three levels: no health insurance, partial health insurance coverage, and full health insurance coverage. For the independent variables, or the predictors, that are used to predict each household’s health insurance status, there are two: Metro_Status and Family_Income. In Metro_Status, as aforementioned, there are two categories that are whether a household lives in a “Metropolitan” region or a “Non=Metropolitan” region. In the following predictor of income, it is categorized into high income (value of 2) and low income (value of 1). 
+```{r}
+#Running the multinomial model with current health insurance as outcome, metropolitan status as input, controlling for family income
+multinom_model=multinom(Current_Health_Insurance ~ Metro_Status + Family_Income, data = clean_dta)
+summary_model=summary(multinom_model)
+summary_model
+```
+
+### The following code is used to summarize the coefficients for each of the estimated effects of the predictor variables, the standard errors of each coefficient estimate, and the baseline category which is compared to other variables. Afterward, this model computes the Z-values for each of the coefficients within the formula, and based on the following Z-values, it will provide the p-values of each to determine whether or not each predictor variable is statistically significant.
+
+```{r}
+#Calculating for p-values of the model
+z_values=summary_model$coefficients / summary_model$standard.errors
+p_values=2 * (1 - pnorm(abs(z_values)))
+p_values
+
+```
+
+#The results of the regression show that family income significantly affects health insurance status. It shows that higher income levels is strongly associated with a greater likelihood of having either partial or full health insurance coverage. The effect of living in a non-metropolitan area is relatively small, but it appears to have a modest impact on the likelihood of having full coverage, as suggested by the statistically significant p value of 0.046. However, metro status does not show a strong relationship with having partial insurance. Thus, policy interventions aimed at improving health insurance coverage should focus on addressing income disparities, as income plays a much more substantial role than geographic location in determining insurance access.
+
+
+### This code calculates the proportion of households with Family Income over $75000 in both the Urban and Rural Groups and plots on a stacked barplot. It first uses the filtered data to provide the frequency for each of the following variables” Metro_Status and Family_Income. Afterward, it is grouped by the Metro_Status, so either living in a metropolitan region or non-metropolitan region before calculating the proportion of family income based on the type of region the household resides in.
+```{r}
+
+filtered_dta %>%
+  count(Metro_Status, Family_Income) %>%
+  group_by(Metro_Status) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ggplot(aes(x = Metro_Status, 
+             y = proportion, 
+             fill = Family_Income)) +
+  geom_bar(stat = "identity", 
+           position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_discrete() +
+  labs(
+    title = "Proportion of Family Income by Urban/Rural Classification",
+    x = "Urban                      Rural",
+    y = "Proportion of Households",
+    fill = "Insurance Coverage"
+  ) +
+  theme_minimal()
+```
+

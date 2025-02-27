@@ -1,0 +1,60 @@
+---
+title: "MyProject"
+output: html_document
+date: "2025-02-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(nnet)
+```
+
+```{r}
+data=read.csv("data/asecpub24csv/hhpub24.csv")
+filtered_dta=data %>% 
+  select(Metro_Status = GTMETSTA, Previous_Private_Insurance = HPRIV, Current_Private_Insurance = NOW_HPRIV, Family_Income = HEFAMINC, Public_Insurance = HPUB, Medicaid_Coverage = HMCAID, Current_Health_Insurance = NOW_HCOV, Previous_Health_Insurance=HCOV) %>%
+  na.omit() 
+
+#Remove rows where metro status, medicaid is undetermined
+remove_metro=which(filtered_dta$Metro_Status==3)
+if(length(remove_metro)>0){
+filtered_dta=filtered_dta[-remove_metro,]
+}
+
+remove_medicaid=which(filtered_dta$Medicaid_Coverage==0)
+if(length(remove_medicaid)>0){
+filtered_dta=filtered_dta[-remove_medicaid,]
+}
+
+
+remove_income=which(filtered_dta$Family_Income==-1)
+if(length(remove_income)>0){
+filtered_dta=filtered_dta[-remove_income,]
+}
+
+#Cleaning Family_Income so that <$75000 is 1, >=$75000 is 2
+filtered_dta$Family_Income=ifelse(as.numeric(filtered_dta$Family_Income)<=13,1,2)
+
+clean_dta=filtered_dta %>%
+  mutate(
+    Metro_Status=ifelse(Metro_Status==1, "Metropolitan", "Non-Metropolitan"),
+    Family_Income=as.factor(Family_Income),
+    Medicaid_Coverage=factor(Medicaid_Coverage,
+                                      levels=c(1,2,3),
+                             labels=c("All", "Some", "None")),
+    Current_Health_Insurance=factor(Current_Health_Insurance,
+                                    levels=c(3,2,1),
+                                    labels=c("None","Some", "All"))
+  )
+
+multinom_model=multinom(Current_Health_Insurance ~ Metro_Status + Family_Income, data = clean_dta)
+```
+```{r}
+summary_model=summary(multinom_model)
+z_values <- summary_model$coefficients / summary_model$standard.errors
+p_values <- 2 * (1 - pnorm(abs(z_values)))
+```
+

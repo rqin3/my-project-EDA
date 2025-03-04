@@ -6,6 +6,9 @@ library(ggplot2)
 library(tidyr)
 library(readr)
 library(nnet)
+library(maps)
+library(tools)
+library(usmap)
 ```
 # <u>**Analysis into Demographic Factors Influencing Access to Healthcare Insurance**</u>
 ### By Sean Lee, Richard Qin, and Kenneth Lim
@@ -110,13 +113,28 @@ data=read.csv("data/asecpub24csv/hhpub24.csv")
 #Selecting and renaming column titles
 filtered_dta=data %>% 
   select(Metro_Status = GTMETSTA, 
-         Previous_Private_Insurance = HPRIV, 
+         Household_Number = H_NUMPER,
          Current_Private_Insurance = NOW_HPRIV, 
-         Family_Income = HEFAMINC, 
-         Public_Insurance = HPUB, 
-         Current_Health_Insurance = NOW_HCOV, 
-         Previous_Health_Insurance=HCOV) %>%
+         Household_Income_Continuous = HWSVAL, 
+         Household_Income_Categorical = HHINC,
+         Current_Public_Insurance = NOW_HPUB, 
+         Current_Health_Insurance = NOW_HCOV,
+         Current_Medicaid = NOW_HMCAID,
+         State_Code = GESTFIPS) %>%
   na.omit() 
+
+#Changing State Codes to State Abbreviation using maps package
+fips=read.csv("data/asecpub24csv/us-state-ansi-fips.csv")
+colnames(fips)=c("State_Name", "State_Code", "State_Abbreviation")
+filtered_dta=left_join(filtered_dta, fips, by=c("State_Code"))
+
+#Getting the number of counts of each state and putting it in new column
+for (i in 1:nrow(filtered_dta)) {
+  x=filtered_dta$State_Abbreviation[i]
+  number=length(which(filtered_dta$State_Abbreviation==x))
+  filtered_dta$Number_In_State[i]=number
+}
+  
 ```
 
 #### The following data is now used to remove rows where the data is unknown for metro status, medicaid status, and family income. By creating a function (named remove_part) to run this removal method, it removes each of the unknown variables. The function works by first determining which parts to remove by looking at each of the specific columns and seeing what is coded for the unknowns for each. Afterwards, the function will determine if any of the data points are unknown for the selected column and if it’s greater than 0, it will remove the data points defined as unknown from the original filtered dataset. For each of the variables, the unknown is defined differently based on the codebook. The Metro Status defines the unknown as the value 3 and the Family Income variable notes the unknown as -1. Thus, the function can adjust to each of the values to properly eliminate the variable that corresponds with whether or not the variable has an unknown.
@@ -133,8 +151,7 @@ data = data[-remove_this_part,]
 
 # Removing Metro Status that equals 3 (unknown)
 filtered_dta=remove_part(filtered_dta, "Metro_Status", 3)
-# Removing Family Income that equals -1 (unknown)
-filtered_dta=remove_part(filtered_dta, "Family_Income", -1)
+filtered_dta=remove_part(filtered_dta, "Household_Number", 0)
 ```
 
 #### The code shown below initially ensures that all the values within the variable Family_Income are numeric variables before classifying those that make above or equal to $75,000 as a value of 2 and those that make less than $75,000 as equal to a value of 1. After cleaning the Family_Income variable, the code then replaces those within the column Metro_Status with categorical variables rather than numerical variables.
@@ -144,22 +161,21 @@ filtered_dta=remove_part(filtered_dta, "Family_Income", -1)
 #### Afterwards, the values of Family_Income are reclassified into categorical variables from numerical variables as the representation of the values 1 and 2 are categorical instead of numerical. This is in part due to the significance that the values within the Family_Income variable represent ranges rather than specific values. The following code then recoded the numerical variables into more interpretable categories for the Current_Health_Insurance column. The final result would therefore be the value 3 being changed to no health insurance or "None", the value 2 recoded to represent partial health insurance or "Some", and the value 1 recoded to show full health insurance or "All". 
 
 ```{r}
-#Separating Family Income into binary variables where everything equal to and below 13 is 1 and everything above 13 is 2. 
-filtered_dta$Family_Income=ifelse(as.numeric(filtered_dta$Family_Income)<=13,1,2)
-
 #Creating a new dataset with every column needed as factors
 clean_dta=filtered_dta %>%
   mutate(
     Metro_Status=ifelse(Metro_Status==1, 
                         "Metropolitan", 
                         "Non-Metropolitan"),
-    Family_Income=as.factor(Family_Income),
     Current_Health_Insurance=factor(Current_Health_Insurance,
                         levels=c(3,2,1),
                         labels=c("None",
                                  "Some", 
                                   "All"))
   )
+
+cleaned_dta$Binary_Household_Income=ifelse(cleaned_dta$Household_Income_Categorical<=14, 1, 2)
+cleaned_dta$Binary_Household_Income=as.factor(cleaned_dta$Binary_Household_Income)
 ```
 ## <u>**Data Visualizations:**</u>
 
@@ -174,6 +190,15 @@ clean_dta=filtered_dta %>%
 
 #### From the results, we see that this dataset has more people living in metropolitan areas, with 82.1% of households in metropolitan areas. We also see 88% of the sample size has insurance for all family members. In contrast, when it comes to family income, we can see that the proportions are much closer, with 53.5% of households having a family income less than $75,000, and 46.5% of households with a family income above this threshold. 
 ```{r}
+#Table with State and Number and Proportion
+state_dta = filtered_dta %>% 
+  select(State_Abbreviation, Number_In_State) %>%
+  group_by(State_Abbreviation) %>% 
+  summarize(Number_In_State = first(Number_In_State)) %>% 
+  ungroup()
+
+state_dta$Proportion=state_dta$Number_In_State/(sum(state_dta$Number_In_State))
+
 #Creating tables and proportion tables for Metro_Status, Current_Health_Insurance
 
 table(clean_dta$Metro_Status)
@@ -257,4 +282,8 @@ IGNORE THIS PART
 #### Further, this exploratory analysis has only looked at a fraction of the many columns available in the Annual Social and Economic Supplement Dataset. There are many questions that could be asked
 
 
+```{r}
+#Everything 14 and below=1, Everything 14 and above=2
+cleaned_dta$Binary_Household_Income=ifelse(cleaned_dta$Household_Income_Categorical<=14, 1, 2)
+```
 

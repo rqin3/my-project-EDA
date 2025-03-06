@@ -1,0 +1,535 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(nnet)
+library(usmap)
+library(tools)
+library(gridExtra)
+```
+# <u>**Analysis into Demographic Factors Influencing Access to Healthcare Insurance**</u>
+### By Sean Lee, Richard Qin, and Kenneth Lim
+
+## <u>**Dataset Introduction:**</u>
+
+### Annual Social and Economic Supplement 2024:
+#### The dataset at the focus of this exploratory data analysis (EDA) is the Annual Social and Economic Supplement (ASEC) 2024 of the larger Current Population Survey (CPS). Annually administered by the U.S. Census Bureau and the Bureau of Labor Statistics (BLS), the ASEC dataset is a comprehensive source of information about income, poverty, financial status, insurance coverage, and various demographic details of 89,473 households across the United States (U.S. Census Bureau 2024). It provides detailed insights into socio-economic factors influencing these households and offers a snapshot of the population's financial and social well-being. Given its national scope and large sample size, the dataset provides valuable insights into socio-economic patterns across different household types.
+
+### Ethical Considerations:
+#### Although the dataset is publicly available and anonymized to protect the privacy of respondents, researchers must approach analysis responsibly. Misrepresenting results, overlooking potential biases, or using the data to reinforce stereotypes should be avoided. Additionally, it's essential to consider factors such as underreporting of income or access disparities due to systemic inequalities. It is the responsibility of the researchers to recognize and account for social and economic factors that could influence both the dataset and the interpretation of its results.
+
+### Purpose of the Analysis:
+#### This exploratory analysis aims to breakdown this very large and complex dataset and prepare it to ask questions for future research purposes. Our group is primarily focused on the healthcare system, and more specifically, the various factors that influence a population's ability to access affordable healthcare. Due to the nature of the institutions and systems in place in this country, there are various barriers that individuals face when it comes to obtaining healthcare. One of, if not the biggest of such barriers is that of health insurance. Health insurance coverage often dictates the ability to obtain care from many medical practices and clinics. As a result, it is important to analyze who has health insurance coverage and the different factors that influence the such patterns. Variables such as State, metropolitan status, the number of household members and household income may play a significant role in the access to healthcare. 
+
+#### The dataset is read into the R environment using standard functions from the tidyverse library:
+
+```{r}
+data=read.csv("data/asecpub24csv/hhpub24.csv")
+
+dim(data)
+```
+
+#### This dataset contains 89,473 rows and 140 columns. Relevant columns to this project will be extracted and renamed for further analysis. The definition of each of the column names can be found the the data dictionary.
+
+### Identifying Variables for Analysis:
+
+<div class="indent">
+  <ul>
+    <li>HWSVAL: Household Income (Numerical Continuous Information)</li>
+    <ul class="indent">
+      <li>0 = No Household Income</li>
+      <li>Value = Household Income Dollar Amount</li>
+    </ul>
+    
+     <li>HHINC: Total Household income.</li>
+    <ul class="indent">
+      <li>1 = Under $2,500</li>
+      <li>2 = $2,500 to $4,999</li>
+      <li>3 = $5,000 to $7,499</li>
+      <li>4 = $7,500 to $9,999</li>
+      <li>5 = $10,000 to $12,499</li>
+      <li>6 = $12,500 to $14,999</li>
+      <li>7 = $15,000 to $17,499</li>
+      <li>8 = $17,500 to $19,999</li>
+      <li>9 = $20,000 to $22,499</li>
+      <li>10 = $22,500 to $24,999</li>
+      <li>11 = $25,000 to $27,499</li>
+      <li>12 = $27,500 to $29,999</li>
+      <li>13 = $30,000 to $32,499</li>
+      <li>14 = $32,500 to $34,999</li>
+      <li>15 = $35,000 to $37,499</li>
+      <li>16 = $37,500 to $39,999</li>
+      <li>17 = $40,000 to $42,499</li>
+      <li>18 = $42,500 to $44,999</li>
+      <li>19 = $45,000 to $47,499</li>
+      <li>20 = $47,500 to $49,999</li>
+      <li>21 = $50,000 to $52,499</li>
+      <li>22 = $52,500 to $54,999</li>
+      <li>23 = $55,000 to $57,499</li>
+      <li>24 = $57,500 to $59,999</li>
+      <li>25 = $60,000 to $62,499</li>
+      <li>26 = $62,500 to $64,999</li>
+      <li>27 = $65,000 to $67,499</li>
+      <li>28 = $67,500 to $69,999</li>
+      <li>29 = $70,000 to $72,499</li>
+      <li>30 = $72,500 to $74,999</li>
+      <li>31 = $75,000 to $77,499</li>
+      <li>32 = $77,500 to $79,999</li>
+      <li>33 = $80,000 to $82,499</li>
+      <li>34 = $82,500 to $84,999</li>
+      <li>35 = $85,000 to $87,499</li>
+      <li>36 = $87,500 to $89,999</li>
+      <li>37 = $90,000 to $92,499</li>
+      <li>38 = $92,500 to $94,999</li>
+      <li>39 = $95,000 to $97,499</li>
+      <li>40 = $97,500 to $99,999</li>
+      <li>41 = $100,000 and over</li>
+    </ul>
+      
+    <li>GTMETSTA: Metropolitan status of the household (urban or rural classification)</li>
+    <ul class="indent">
+      <li>1 = Metropolitan</li>
+      <li>2 = Non-metropolitan</li>
+      <li>3 = Not identified</li>
+    </ul>
+    
+    <li>NOW_HPRIV: Current Private Insurance Coverage</li>
+    <ul class="indent">
+      <li>1 = All members of the household</li>
+      <li>2 = Some members of the household</li>
+      <li>3 = No members of the household</li>
+    </ul>
+    
+    <li>NOW_HPUB: Current Public Insurance Coverage</li>
+    <ul class="indent">
+      <li>1 = All members of the household</li>
+      <li>2 = Some members of the household</li>
+      <li>3 = No members of the household</li>
+    </ul>
+
+    <li>NOW_HMCAID: Current medicaid coverage</li>
+    <ul class="indent">
+      <li>1 = All members of the household</li>
+      <li>2 = Some members of the household</li>
+      <li>3 = No members of the household</li>
+    </ul>
+    
+    <li>NOW_HCOV: Current Health Insurance Coverage</li>
+    <ul class="indent">
+      <li>1 = All members of the household</li>
+      <li>2 = Some members of the household</li>
+      <li>3 = No members of the household</li>
+    </ul>
+    
+    <li>GESTFIPS: State FIPS code of each household</li>
+    <ul class="indent">
+      <li>Value (01 to 56) = State Code based on the United States Postal Service Publication 65 (the Geographic Names Information System)</li>
+    </ul>
+    
+    <li>H_NUMPER: Number of individuals in the household</li>
+    <ul class="indent">
+      <li>00 = Non-interview household</li>
+      <li>01-16 = Number of individuals in household </li>
+    </ul>
+    
+  </ul>
+</div>
+
+## <u>**Data Cleaning:**</u>
+
+#### The dataset is first filtered to only include variables that are determined to be key indicators of medical insurance coverage for the United States population in 2024. The relevant variables listed above will be renamed using the select function. Next, all of the rows that do not contain data in any of the selected variables are omitted and removed from the dataset. This allows us to create a more concise dataset that will be used for further analysis of how each factor is distributed. Moreover, removing unknown or unidentified observations assists in understanding the counts within each observation and ensures that variables that may be missing variables are not influencing further demographic analysis.
+
+```{r}
+#Selecting and renaming column titles
+filtered_dta=data %>% 
+  select(Metro_Status = GTMETSTA, 
+         Household_Number = H_NUMPER,
+         Current_Private_Insurance = NOW_HPRIV, 
+         Household_Income_Continuous = HTOTVAL, 
+         Household_Income_Categorical = HHINC,
+         Current_Public_Insurance = NOW_HPUB, 
+         Current_Health_Insurance = NOW_HCOV,
+         Current_Medicaid = NOW_HMCAID,
+         State_Code = GESTFIPS) %>%
+  na.omit() 
+```
+
+#### After keeping the relevant observations in the dataset, the Federal Information Processing codes (FIPS codes) were converted into the United States of Americas state names and abbreviations for each. While the original dataset maintains the FIPS codes which are listed as numbers, it is difficult to interpret which each household is located. Adding a column for the actual state names and state abbreviations will not only make it easier to understand but also allow for the use certain functions that cannot interpret FIPS codes instead of actual state names. An external dataset including FIPS codes along with the corresponding state names and state abbreviations was merged with the ASEC data (Noriega-Goodwin 2017). This resulted in the creation of two new columns for each observation with the state name and the state abbreviation.
+
+```{r}
+#Changing State Codes to State Abbreviation and Names by merging with FIPS code data
+fips=read.csv("data/asecpub24csv/us-state-ansi-fips.csv")
+colnames(fips)=c("State_Name", "State_Code", "State_Abbreviation")
+filtered_dta=left_join(filtered_dta, fips, by=c("State_Code"))
+```
+
+
+#### The resulting data is cleaned further by removing rows where the data is unknown for metro status, medicaid status, and family income. The function named remove_part includes three parameters: data, column_name, and value. The value parameter corresponds to what "unknown" is coded as for each given variable. It then counts how many rows for each variable has this value, and if it is greater than 0, it will remove them from the original filtered dataset. For each of the variables, the unknown is defined differently based on the codebook. The Metro Status defines unknowns as the value 3, the household number defined 0 as non-interviewed household, all the different insurance policies defined unknown as 0, and for all the household income values that were negative were removed. Thus, the function can adjust to each of the corresponding values to properly eliminate all unknowns.
+
+```{r}
+# Function to remove the unknowns from the dataset
+remove_part = function(data, column_name, value){
+remove_this_part = which(data[[column_name]]==value)
+if(length(remove_this_part) > 0){
+data = data[-remove_this_part,]
+}
+  return(data)
+}
+
+# Removing Metro Status that equals 3 (unknown)
+filtered_dta=remove_part(filtered_dta, "Metro_Status", 3)
+# Removing Household Numbers that equal 0 (Non-interviewed household)
+filtered_dta=remove_part(filtered_dta, "Household_Number", 0)
+# Removing Current Health Insurance that equals 0 (unknown)
+filtered_dta=remove_part(filtered_dta, "Current_Health_Insurance", 0)
+# Removing Current Public Insurance that equals 0 (unknown)
+filtered_dta=remove_part(filtered_dta, "Current_Public_Insurance", 0)
+# Removing Current Private Insurance that equal 0 (unknown)
+filtered_dta=remove_part(filtered_dta, "Current_Private_Insurance", 0)
+# Removing Current Medicaid that equals 0 (unknown)
+filtered_dta=remove_part(filtered_dta, "Current_Medicaid", 0)
+# Removing Household Income Values which are equal to negative numbers (Negative Income Values)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -20043)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -19998)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -9999)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -9987)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -7497)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -7269)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -5940)
+filtered_dta=remove_part(filtered_dta, "Household_Income_Continuous", -798)
+
+
+```
+
+#### The code shown below turns the categorical variables from a numerical value to a phrase or word. Recoding these variables allows for simple interpreation rather than referencing the code book. For example, the column "Metro_Status" is recoded so that "Metropolitan" replaces the value 1, whereas "Non-Metropolitan" replaces the value 2. Similar processes for the other variables are run based on the way each is coded. Through this process, the dataset becomes more accessible for interpretation.
+
+```{r}
+#Creating a new dataset with every column needed as factors
+clean_dta=filtered_dta %>%  
+  mutate(
+    Metro_Status=ifelse(Metro_Status==1, 
+                        "Metropolitan", 
+                        "Non-Metropolitan"),
+    Current_Health_Insurance=factor(Current_Health_Insurance,
+                        levels=c(3,2,1),
+                        labels=c("None",
+                                 "Some", 
+                                  "All")),
+    Current_Private_Insurance=factor(Current_Private_Insurance,
+                        levels=c(3,2,1),
+                        labels=c("None",
+                                 "Some", 
+                                  "All")),
+     Current_Public_Insurance=factor(Current_Public_Insurance,
+                        levels=c(3,2,1),
+                        labels=c("None",
+                                 "Some", 
+                                  "All")),
+    Current_Medicaid=factor(Current_Medicaid,
+                        levels=c(3,2,1),
+                        labels=c("None",
+                                 "Some", 
+                                  "All")),
+    Household_Income_Categorical_Factor=factor(Household_Income_Categorical,
+                                        levels=c(1:41),
+                                        labels=c("UNDER $2,500" , 
+                                                 "$2,500 TO $4,999",
+                                                 "$5,000 TO $7,499",
+                                                 "$7,500 TO $9,999", 
+                                                 "$10,000 TO $12,499",
+                                                 "$12,500 TO $14,999",
+                                                 "$15,000 TO $17,499",
+                                                 "$17,500 TO $19,999",
+                                                 "$20,000 TO $22,499",
+                                                 "$22,500 TO $24,999",
+                                                 "$25,000 TO $27,499",
+                                                 "$27,500 TO $29,999",
+                                                 "$30,000 TO $32,499",
+                                                 "$32,500 TO $34,999",
+                                                 "$35,000 TO $37,499",
+                                                 "$37,500 TO $39,999",
+                                                 "$40,000 TO $42,499",
+                                                 "$42,500 TO $44,999",
+                                                 "$45,000 TO $47,499",
+                                                 "$47,500 TO $49,999",
+                                                 "$50,000 TO $52,499",
+                                                 "$52,500 TO $54,999",
+                                                 "$55,000 TO $57,499",
+                                                 "$57,500 TO $59,999",
+                                                 "$60,000 TO $62,499",
+                                                 "$62,500 TO $64,999",
+                                                 "$65,000 TO $67,499",
+                                                 "$67,500 TO $69,999",
+                                                 "$70,000 TO $72,499",
+                                                 "$72,500 TO $74,999",
+                                                 "$75,000 TO $77,499",
+                                                 "$77,500 TO $79,999",
+                                                 "$80,000 TO $82,499",
+                                                 "$82,500 TO $84,999",
+                                                 "$85,000 TO $87,499",
+                                                 "$87,500 TO $89,999",
+                                                 "$90,000 TO $92,499",
+                                                 "$92,500 TO $94,999",
+                                                 "$95,000 TO $97,499",
+                                                 "$97,500 TO $99,999",
+                                                 "$100,000 AND OVER")))
+```
+
+#### An additional column is added for clarity on the total number of the state's appearance in the dataset. A table will be created to display each state's frequency count and proportion from the total dataset. The counts were first calculated by using a loop function for each row to count the number of counts per each state abbreviation.
+
+```{r}
+#Counts the Number of Observations in Each State
+for (i in 1:nrow(clean_dta)) {
+  x=clean_dta$State_Abbreviation[i]
+  number=length(which(clean_dta$State_Abbreviation==x))
+  clean_dta$Number_In_State[i]=number
+}
+```
+
+## <u>**Data Visualizations:**</u>
+
+#### To obtain the proportions, the number of counts per each state is collected in a column titled "Number_In_State". Afterwards, the values were created into a table and the proportion was calculated by dividing each state's number and dividing the total number of observations.
+
+```{r}
+#Creating Table with State and Count
+state_dta = clean_dta %>% 
+  select(State_Abbreviation, Number_In_State) %>%
+  group_by(State_Abbreviation) %>% 
+  summarize(Number_In_State = first(Number_In_State)) %>% 
+  ungroup()
+
+#Adding Proportion column
+state_dta$Proportion=state_dta$Number_In_State/(sum(state_dta$Number_In_State))
+
+state_dta
+```
+
+#### After cleaning the data, a density map of the observations is created to understand which states have the most abundant respondants. Taking the values from the table shown above, it provides an easier visualization of the counts per state in a more artistic method compared to only using a contingency table. Using the package "usmap", it allows for the creation of the US map divided by states and shows the longitude/latitude of the locations. Moreover, "usmap" is able to compile the information using the plotting function "plot_usmap()" and inputting the counts alongside the states. This function rquires full state names as inputs rather than the FIPS code, which justifies earlier steps of converting the codes to full state names/abbreviations. 
+
+```{r}
+# Changes the state names in the dataset to all lowercase
+clean_dta$state = tolower(clean_dta$State_Name)
+
+# Plots the density map for respondents after cleaning the dataset based on state
+plot_usmap(data = clean_dta, values = "Number_In_State", regions = "state") +
+  scale_fill_viridis_c(name = "Density", option = "plasma") + 
+  theme_minimal() +
+  labs(title = "Density Map of Observations Based on State Counts")
+```
+
+#### Based on the density map visualization, it is apparent the most viable observations were mostly from California, followed by Texas, Florida, and New York. Using the color scheme "plasma", the states are shown from the highest count to the lowest count from the following colors: yellow, orange, red, fuchsia, and dark purple. However, the remainder of the observations appear to fall less than 4,000 observations in each of the observations based on the colors of the map. Thus, the map indicates that there may be some regional dependency from the state's location as there is much more data from California and Texas relative to other states.
+
+#### In order to further understand the distributions of the variables shown in the dataset, a function was created to develop barplots. The function called "create_table_barplot" is able to use the data and column name to plot a barplot with the "ggplot()" function. The function uses the following variables to determine the dataset, variable being analyzed, and title of the chart: data, column_name, and title. This function was run for the categorical variables: "Metro_Status", "Current_Health_Insurance", "Current_Private_Insurance", "Current_Public_Insurance", "Current_Medicaid", and "Household_Income_Categorical".
+
+```{r}
+#Function for creating barplots
+create_table_barplot = function(data, column_name, title){
+
+ggplot(data, aes_string(x = column_name, fill = column_name)) +
+  geom_bar() +  
+  theme_minimal() +
+  labs(title = title, x = "Category", y = "Frequency")+
+  theme(axis.text.x = element_blank())
+}
+```
+
+### Metropolitan Table and Status Distribution
+```{r}
+#Creating tables and proportion tables for Metro_Status
+metro_table=table(clean_dta$Metro_Status)
+metro_table ; prop.table(metro_table)
+```
+
+```{r}
+#Creating Barplot
+create_table_barplot(clean_dta, "Metro_Status", "Bar Plot of Metropolitan Status")
+```
+
+#### From the results, we see that this dataset has much more people living in metropolitan areas, with 80.1% of households in metropolitan areas and 19.9% of households residing in non-metropolitan regions.
+
+### Current Health Insurance Table and Status Distribution:
+
+```{r}
+#Creating tables and proportion tables for Current_Health_Insurance
+current_health_insurance_table=table(clean_dta$Current_Health_Insurance)
+current_health_insurance_table ; prop.table(current_health_insurance_table)
+```
+
+```{r}
+#Creating Barplot for Current Health Insurance
+create_table_barplot(clean_dta, "Current_Health_Insurance", "Bar Plot of Current Health Insurance Status")
+```
+
+#### Based on the frequenices of the number of individuals that state that everyone in the household has insurance, it is evident that in majority of households, all individuals have a form of healthcare insurance. The category of "All" individuals having a form of health insurance comprises 87.96% of all the values within the column. The majority of households all having insurance is followed by a very smaller percentage (7.97%) having only "Some" insured individuals living in the household, and lastly 4.07% of observations are households with zero healthcare insurance. The Bar plot of the Current Health Insurance Status variable further highlights the skew of households in the dataset having full insurance. 
+
+### Current Private Insurance Table and Status Distribution:
+
+```{r}
+#Creating tables and proportion tables for Current_Health_Insurance
+current_private_insurance_table=table(clean_dta$Current_Private_Insurance)
+current_private_insurance_table ; prop.table(current_private_insurance_table)
+```
+
+```{r}
+#Creating bar plot for Current_Private_Insurance
+create_table_barplot(clean_dta, "Current_Private_Insurance", "Bar Plot of Current Private Health Insurance Status")
+```
+
+#### After exploring the number of individuals who have heath insurance, the following steps was to understand the distribution of various types of healthcare insurance. The first type of healthcare insurance analyzed was individuals in hosueholds that have private health insurance. Out of the total number of  observations, over half of the households have private health insurance for all members (55.67%), followed by a smaller number only some members in the household with private health insurance (15.68%), and around a quarter of total surveryed households having no one with private health insurance (28.65%).
+
+### Current Public Insurance Table and Status Distribution:
+
+```{r}
+#Creating tables and proportion tables for Current_Health_Insurance
+current_public_insurance_table=table(clean_dta$Current_Public_Insurance)
+current_public_insurance_table ; prop.table(current_public_insurance_table)
+```
+```{r}
+#Creating bar plot for Current_Public_Insurance
+create_table_barplot(clean_dta, "Current_Public_Insurance", "Bar Plot of Current Public Health Insurance Status")
+```
+
+#### Based on the previous exploration into private health insurance, it was imperative to understand the same counts and proportions for the public health insurance as well. Applying the same methodology to the "Current_Public_Insurance" column revealed a significant portion of households rely solely on public health insurance. The data shows that 32.75% of households have all members covered by public insurance, while 16.60% have only some members covered. The bar plot visualizes these differences in frequency counts. 
+
+### Current Medicaid Table and Status Distribution:
+
+```{r}
+#Creating tables and proportion tables for Current_Health_Insurance
+current_medicaid_table=table(clean_dta$Current_Medicaid)
+current_medicaid_table ; prop.table(current_medicaid_table)
+```
+
+```{r}
+#Creating bar plot for Current_Medicaid
+create_table_barplot(clean_dta, "Current_Medicaid", "Bar Plot of Current Medicaid Status")
+```
+
+#### The next step into visualization was to understand the percentage of individuals participating in medicaid.Medicaid is a form of public health insurance program for low-income individuals and families that are unable to afford private healthcare insurance. As a staggering percentage of households have no medicaid (79.04%), there is an apparent skew of households either not qualifying or participating in medicaid. The distributions of these proportions can be visualized in the bar plot of the current medicaid status of households. 
+
+### Current Household Income (Categorical) Table and Status Distribution:
+```{r}
+#Creating tables and proportion tables for Current_Health_Insurance
+current_household_income_cat_table=table(clean_dta$Household_Income_Categorical_Factor)
+current_household_income_cat_table ; prop.table(current_household_income_cat_table)
+```
+
+```{r}
+#Creating bar plot for Household_Income_Categorical
+create_table_barplot(clean_dta, "Household_Income_Categorical_Factor", "Bar Plot of Current Household Income")
+```
+
+#### After analyzing the distributions of the different type of insurances in the dataset, the next variable of interest shows the ranges of each of the current household incomes. Given the numerous number of categories, the table displaying the frequencies and proportions is hard to interpret. The barplot is particularly useful here. Interestingly, the category displaying an income value of $100,000 and over has over 20,000 counts, while the rest of the categories have roughly 1,000 counts or less. Based on this information, we can conclude there is a skew in the household incomes being represented from the dataset.
+
+### Current Household Income (Continuous Numerical) Table and Status Distribution:
+
+#### With the continuous numerical variables of continuous households, summary statistics and histograms were made to interpret the data. This includes the household income and household number.
+
+```{r}
+#Deriving summary statistics for Household_Income_Continuous
+summary(clean_dta$Household_Income_Continuous)
+```
+
+```{r}
+#Creating histogram for Household_Income_Continuous
+hist(clean_dta$Household_Income_Continuous,breaks = 100,main="Histogram of Continuous Household Income", xlab = "Household Income")
+```
+
+### Continuous Household Income Barplot:
+
+#### As seen from the histogram above, this data is highly right-skewed, with household incomes ranging over $2,000,000. This large range made it hard to interpret, thus we added more bars in the histogram to help with the visualization. Due to this large scale, it is difficult to interpret the distribution of incomes on the lower end, as this is where most observations are concentrated. To better visualize this distribution, we can create a bar plot with a logarithmic scale on the x-axis, which helps compress the extreme values and interpret the distribution among lower-income households more clearly. 
+
+```{r}
+#Creating logarithmic scale histogram for Household_Income_Continuous
+ggplot(clean_dta, aes(x = Household_Income_Continuous)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  scale_x_log10() +
+  theme_minimal() +
+  labs(title = "Histogram of Household Income (Log Scale)",
+       x = "Household Income (log scale)", y = "Frequency")
+```
+
+### Current Household Number Table and Status Distribution:
+
+```{r}
+#Deriving summary statistics for Household_Number
+summary(clean_dta$Household_Number)
+```
+
+```{r}
+#Creating histogram for Household_Number
+hist(clean_dta$Household_Number)
+```
+
+#### With the Household Number histogram, it also heavily right skewed. This means that majority of the households sampled have a small number of people in the household. Thus, the results should be interpreted carfully, the median should be interpreted as the central tendency with a number of 2 members. 
+
+### Categorical Variables:
+
+#### To interpret the distributions of categorical variables more easily, pie charts were created to visualize the proportions. First of all, since we need to make multiple plots, we can systematize the process by first creating a function. 
+
+#### The code for the function create_pie_chart incorporates 3 parameters: data, column_name, and title. Initially, the function creates tables for the given variable and renames the columns as category and count. Then, the proportions were calculated as percentages by dividing the categorical count by the total count and multiplying by 100. This information is then added to the new column "Label" that combines the category, count, and percentage, which will be displayed on the pie chart. It finally uses ggplot2 to create a pie chart with polar coordinates and labeled with geom_text. 
+
+#### Once the pie chart function is made, it is run with Metro_Status, Current_Health_Insurance, and Family_Income, to visualize the distributions. 
+
+```{r}
+#Function to create a pie chart with labels
+create_pie_chart=function(data, column_name, title) {
+  df=as.data.frame(table(data[[column_name]]))
+  colnames(df)=c("Category", "Count")
+  
+#Compute percentage
+  df$Percentage=round(df$Count / sum(df$Count) * 100, 1)
+  df$Label = paste0("\n", df$Count, " (", df$Percentage, "%)")
+
+  ggplot(df, aes(x = "", y = Count, fill = as.factor(Category))) +
+    geom_bar(stat = "identity", width = 1, color = "white") +
+    coord_polar("y", start=0) +
+    geom_text(aes(label=Label), position=position_stack(vjust=0.5), size=2) +
+    labs(title=title, fill=column_name) +
+    theme_void() +
+    theme(legend.title=element_blank())
+}
+
+#Create pie charts
+Metro_Status_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Metro_Status", "Metro Status Distribution")
+Current_Health_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Health_Insurance", "Current Health Insurance Distribution")
+Current_Public_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance Distribution")
+Current_Private_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance Distribution")
+Current_Medicaid_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Medicaid", "Current Medicaid Distribution")
+```
+
+#### When it comes to the categorical household income, due to the wide range of categories that could make the pie chart difficult to interpret, we decided to dichotomize the variable into two categories ("below $83,000", and "$83,000 and over"). We chose $83,000 as the threshold as it was the median, allowing us to ensure relatively equal sample sizes in both categories.
+```{r}
+#Dichotomization of Categorical Household Income
+clean_dta$Binary_Household_Income=ifelse(clean_dta$Household_Income_Categorical<=median(clean_dta$Household_Income_Categorical), 1, 2)
+clean_dta$Binary_Household_Income=factor(clean_dta$Binary_Household_Income,
+                                        levels=c(1,2),
+                                        labels=c("below $83,000","$83,000 and over")) 
+
+#Pie chart of Dichotimized Income Variable
+Current_Binary_Household_Income_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Binary_Household_Income", "Binary Household Income Distribution")
+```
+
+```{r, echo=FALSE}
+#Display the plots in grid layout
+
+grid.arrange(Metro_Status_Distribution_Pie_Chart, Current_Health_Insurance_Distribution_Pie_Chart,Current_Public_Insurance_Distribution_Pie_Chart,Current_Private_Insurance_Distribution_Pie_Chart,Current_Medicaid_Distribution_Pie_Chart, Current_Binary_Household_Income_Distribution_Pie_Chart, ncol=2)
+
+```
+
+
+## <u>**Limitations:**</u>
+#### Despite the large scope and comprehensive nature of this dataset, there are still many limitations. First of all, there is 33,786 individuals with missing data, due to non-reporting by participants. To address this, researchers indicate that there were cases where data points were imputed, or estimated (U.S. Census Bureau 2024). If the process used to execute such imputation is not accurate to reality, this may introduce bias. Further all of the data is self-reported, which introduces potential bias, especially for income and employment-related variables. Another key limitation is that the dataset evaluates income and health insurance on an annual basis rather than a monthly or weekly basis, which may not capture short-term financial hardship or disruptions in insurance coverage.
+
+
+## <u>**Next Steps:**</u>
+
+#### This exploratory analysis provides a foundational understanding of the distributions of demographic factors, income, and metropolitan status and could inform future research on how these factors could influence health insurance coverage. However, there are numerous opportunities for further investigation. Since healthcare policies vary significantly across states, future analysis could explore how state-level policy decisions impact insurance coverage. For example, states have major differences in regards to Medicaid policies under the Affordable Care Act (ACA), affecting access to public health insurance. Integrating external state-level policy data could allow us to further examine how these differences in legislation could impact healthcare access.
+
+## <u>**Bibliography**</u>
+
+### Noriega-Goodwin, Danton. 2017. “US State ANSI/FIPS CSV.” GitHub Gist. https://gist.github.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53. Accessed March 6, 2025.
+### U.S. Census Bureau. 2024. “Annual Social and Economic Supplements.” Census.gov, September 10, 2024. https://www.census.gov/data/datasets/time-series/demo/cps/cps-asec.html
+
+

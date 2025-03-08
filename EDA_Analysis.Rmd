@@ -530,6 +530,6 @@ grid.arrange(Metro_Status_Distribution_Pie_Chart, Current_Health_Insurance_Distr
 ## <u>**Bibliography**</u>
 
 ### Noriega-Goodwin, Danton. 2017. “US State ANSI/FIPS CSV.” GitHub Gist. https://gist.github.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53. Accessed March 6, 2025.
-### U.S. Census Bureau. 2024. “Annual Social and Economic Supplements.” Census.gov, September 10, 2024. https://www.census.gov/data/datasets/time-series/demo/cps/cps-asec.html
+### U.S. Census Bureau. 2024. “Annual Social and Economic Supplements.” Census.gov, September 10, 2024. https://www.census.gov/data/datasets/time-series/demo/cps/cps-asec.html Accessed March 6, 2025.
 
 

@@ -8,6 +8,7 @@ library(nnet)
 library(usmap)
 library(tools)
 library(gridExtra)
+library(scales)
 ```
 # <u>**Analysis into Demographic Factors Influencing Access to Healthcare Insurance**</u>
 ### By Sean Lee, Richard Qin, and Kenneth Lim
@@ -444,10 +445,11 @@ hist(clean_dta$Household_Income_Continuous,breaks = 100,main="Histogram of Conti
 #Creating logarithmic scale histogram for Household_Income_Continuous
 ggplot(clean_dta, aes(x = Household_Income_Continuous)) +
   geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
-  scale_x_log10() +
+  scale_x_log10(labels = comma) +
   theme_minimal() +
   labs(title = "Histogram of Household Income (Log Scale)",
        x = "Household Income (log scale)", y = "Frequency")
+
 ```
 
 ### Current Household Number Table and Status Distribution:
@@ -470,53 +472,83 @@ hist(clean_dta$Household_Number)
 
 #### The code for the function create_pie_chart incorporates 3 parameters: data, column_name, and title. Initially, the function creates tables for the given variable and renames the columns as category and count. Then, the proportions were calculated as percentages by dividing the categorical count by the total count and multiplying by 100. This information is then added to the new column "Label" that combines the category, count, and percentage, which will be displayed on the pie chart. It finally uses ggplot2 to create a pie chart with polar coordinates and labeled with geom_text. 
 
-#### Once the pie chart function is made, it is run with Metro_Status, Current_Health_Insurance, and Family_Income, to visualize the distributions. 
 
-```{r}
-#Function to create a pie chart with labels
-create_pie_chart=function(data, column_name, title) {
-  df=as.data.frame(table(data[[column_name]]))
-  colnames(df)=c("Category", "Count")
-  
-#Compute percentage
-  df$Percentage=round(df$Count / sum(df$Count) * 100, 1)
-  df$Label = paste0("\n", df$Count, " (", df$Percentage, "%)")
+#### When it comes to the categorical household income, due to the wide range of categories that could make the pie chart difficult to interpret, we decided to dichotomize the variable into two categories ("below $82,500", and "$82,500 and over"). We chose $82,500 as the threshold as it was the median, allowing us to ensure relatively equal sample sizes in both categories.
 
-  ggplot(df, aes(x = "", y = Count, fill = as.factor(Category))) +
-    geom_bar(stat = "identity", width = 1, color = "white") +
-    coord_polar("y", start=0) +
-    geom_text(aes(label=Label), position=position_stack(vjust=0.5), size=2) +
-    labs(title=title, fill=column_name) +
-    theme_void() +
-    theme(legend.title=element_blank())
-}
 
-#Create pie charts
-Metro_Status_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Metro_Status", "Metro Status Distribution")
-Current_Health_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Health_Insurance", "Current Health Insurance Distribution")
-Current_Public_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance Distribution")
-Current_Private_Insurance_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance Distribution")
-Current_Medicaid_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Current_Medicaid", "Current Medicaid Distribution")
-```
-
-#### When it comes to the categorical household income, due to the wide range of categories that could make the pie chart difficult to interpret, we decided to dichotomize the variable into two categories ("below $83,000", and "$83,000 and over"). We chose $83,000 as the threshold as it was the median, allowing us to ensure relatively equal sample sizes in both categories.
-```{r}
+```{r} 
 #Dichotomization of Categorical Household Income
 clean_dta$Binary_Household_Income=ifelse(clean_dta$Household_Income_Categorical<=median(clean_dta$Household_Income_Categorical), 1, 2)
 clean_dta$Binary_Household_Income=factor(clean_dta$Binary_Household_Income,
                                         levels=c(1,2),
-                                        labels=c("below $83,000","$83,000 and over")) 
+                                        labels=c("below $82,500","$82,500 and over")) 
 
 #Pie chart of Dichotimized Income Variable
 Current_Binary_Household_Income_Distribution_Pie_Chart=create_pie_chart(clean_dta, "Binary_Household_Income", "Binary Household Income Distribution")
 ```
 
 ```{r, echo=FALSE}
-#Display the plots in grid layout
+# Function to create a bar chart with counts and percentages
+create_bar_chart = function(data, column_name, title) {
+  df = as.data.frame(table(data[[column_name]]))
+  colnames(df) = c("Category", "Count")
+  
+  # Compute percentage
+  df$Percentage = round(df$Count / sum(df$Count) * 100, 1)
+  
+  ggplot(df, aes(x = Category, y = Count, fill = Category)) +
+    geom_bar(stat = "identity", width = 0.6, color = "black") +
+    geom_text(aes(label = paste0(Percentage, "%")), vjust = -0.5, size = 3) +
+    expand_limits(y = max(df$Count) * 1.2) + 
+    labs(title = title, x = column_name, y = "Count") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 10, hjust = 0.5),
+      axis.title.x = element_blank() 
+    )
+}
 
-grid.arrange(Metro_Status_Distribution_Pie_Chart, Current_Health_Insurance_Distribution_Pie_Chart,Current_Public_Insurance_Distribution_Pie_Chart,Current_Private_Insurance_Distribution_Pie_Chart,Current_Medicaid_Distribution_Pie_Chart, Current_Binary_Household_Income_Distribution_Pie_Chart, ncol=2)
+# Create bar charts
+Metro_Status_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Metro_Status", "Metro Status")
+Current_Health_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Health_Insurance", "Current Health Insurance")
+Current_Public_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance")
+Current_Private_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Private_Insurance", "Current Private Insurance")
+Current_Medicaid_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Medicaid", "Current Medicaid")
+Current_Binary_Household_Income_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Binary_Household_Income", "Binary Household Income")
+
+grid.arrange(
+  Metro_Status_Distribution_Bar_Chart,
+  Current_Health_Insurance_Distribution_Bar_Chart,
+  Current_Public_Insurance_Distribution_Bar_Chart,
+  Current_Private_Insurance_Distribution_Bar_Chart,
+  Current_Medicaid_Distribution_Bar_Chart,
+  Current_Binary_Household_Income_Distribution_Bar_Chart,
+  ncol = 3
+)
 
 ```
+
+
+```{r}
+dta_summary = clean_dta %>%
+  group_by(state) %>%
+  summarise(
+    Count_All = sum(Current_Health_Insurance == "All", na.rm = TRUE),
+    Total = n(),
+    Proportion_All = Count_All / Total
+  )
+
+# Plots the density map for respondents after cleaning the dataset based on state
+plot_usmap(data = dta_summary, values = "Proportion_All", regions = "state") +
+  scale_fill_viridis_c(name = "Density", option = "plasma") + 
+  theme_minimal() +
+  labs(title = "Density Map of Full Health Inusrance Coverage Based on State")
+```
+
+
+
 
 
 ## <u>**Limitations:**</u>

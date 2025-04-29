@@ -35,7 +35,7 @@ install.packages("renv")
 renv::restore()
 ```
 
-4. Data processing/transformation scripts are being kept “/my-project-EDA/EDA_Code_Notebook”
+4. Data processing/transformation scripts are being kept `EDA_Code_Notebook.Rmd`
 
 ## Directory Structure
 ```

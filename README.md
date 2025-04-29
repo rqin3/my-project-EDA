@@ -30,27 +30,31 @@ Is there a strong correlation between the state-level political party and health
 3. Data processing/transformation scripts are being kept “/my-project-EDA/EDA_Code_Notebook”
 
 ## Directory Structure
-my-project-EDA/
-├── data/
-│   └── asecpub24csv/
-│       ├── asec2024_ddl_pub_full.pdf
-│       ├── hhpub24.csv
-│       ├── state_political_affiliation.csv
-│       ├── us-state-ansi-fips.csv
-├── EDA_Code_Notebook.html
-├── EDA_Code_Notebook.Rmd
-├── EDA_Project.Rproj
-├── forest_plot_health_insurance.png
-├── README.md
-├── renv/
-│   └── renv.lock
-
+```
+.
+└── my-project-EDA/
+    ├── data/
+    │   └── asecpub24csv/
+    │       ├── asec2024_ddl_pub_full
+    │       ├── hhpub24.csv
+    │       ├── state_political_affliation.csv
+    │       └── us-state-ansi-fips.csv
+    ├── EDA_Code_Notebook.html
+    ├── EDA_Code_Notebook.Rmd
+    ├── EDA_Project.Rproj
+    ├── forest_plot_health_insurance.png
+    ├── README.md
+    ├── renv
+    └── renv.lock
+```
 
 #### Other Members:
-|[Kenneth Lim](https://github.com/LimK2025)| @johnDoe        |
-|[Sean Lee](https://github.com/[github handle]) |     @janeDoe    |
+- [Kenneth Lim](https://github.com/LimK2025)
+- [Sean Lee](https://github.com/hmseanlee)
 
 ## Contact
 * Richard Qin: richard.qin@emory.edu
 * Kenneth Lim: kenneth.lim@emory.edu
 * Sean Lee: sean.lee@emory.edu
+
+

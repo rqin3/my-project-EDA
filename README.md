@@ -50,7 +50,7 @@ Is there a strong correlation between the state-level political party and health
 
 #### Other Members:
 - [Kenneth Lim](https://github.com/LimK2025)
-- [Sean Lee](https://github.com/[github_handle])
+- [Sean Lee](https://github.com/hmseanlee)
 
 ## Contact
 * Richard Qin: richard.qin@emory.edu

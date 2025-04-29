@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
@@ -47,7 +47,7 @@ dim(data)
 <div class="indent">
   <ul>
     <li>HWSVAL: Household Income (Numerical Continuous Information)</li>
-    <ul class="indent">
+    <ul class = "indent">
       <li>0 = No Household Income</li>
       <li>Value = Household Income Dollar Amount</li>
     </ul>
@@ -159,15 +159,15 @@ dim(data)
 ```{r}
 #Selecting and renaming column titles
 filtered_dta=data %>% 
-  select(Metro_Status = GTMETSTA, 
-         Household_Number = H_NUMPER,
-         Current_Private_Insurance = NOW_HPRIV, 
-         Household_Income_Continuous = HTOTVAL, 
-         Household_Income_Categorical = HHINC,
-         Current_Public_Insurance = NOW_HPUB, 
-         Current_Health_Insurance = NOW_HCOV,
-         Current_Medicaid = NOW_HMCAID,
-         State_Code = GESTFIPS) %>%
+  select(Metro_Status=GTMETSTA, 
+         Household_Number=H_NUMPER,
+         Current_Private_Insurance=NOW_HPRIV, 
+         Household_Income_Continuous=HTOTVAL, 
+         Household_Income_Categorical=HHINC,
+         Current_Public_Insurance=NOW_HPUB, 
+         Current_Health_Insurance=NOW_HCOV,
+         Current_Medicaid=NOW_HMCAID,
+         State_Code=GESTFIPS) %>%
   na.omit() 
 
 ```
@@ -217,7 +217,7 @@ remove_part=function(data, column_name, values){
 }
 
 # Remove unwanted values/values that equate to unknown
-filtered_dta = filtered_dta %>%
+filtered_dta=filtered_dta %>%
   remove_part("Metro_Status", 3) %>% #3 is unknown
   remove_part("Household_Number", 0) %>% #0 is non-interviewed household
   remove_part("Current_Health_Insurance", 0) %>% #0 is unknown
@@ -319,10 +319,10 @@ for (i in 1:nrow(clean_dta)) {
 }
 
 #Creating Table with State and Count
-state_dta = clean_dta %>% 
+state_dta=clean_dta %>% 
   select(State_Abbreviation, Number_In_State) %>%
   group_by(State_Abbreviation) %>% 
-  summarize(Number_In_State = first(Number_In_State)) %>% 
+  summarize(Number_In_State=first(Number_In_State)) %>% 
   ungroup()
 
 #Adding Proportion column
@@ -340,13 +340,13 @@ state_dta
 
 ```{r}
 # Changes the state names in the dataset to all lowercase
-clean_dta$state = tolower(clean_dta$State_Name)
+clean_dta$state=tolower(clean_dta$State_Name)
 
 # Plots the density map for respondents after cleaning the dataset based on state
-plot_usmap(data = clean_dta, values = "Number_In_State", regions = "state") +
-  scale_fill_viridis_c(name = "Density", option = "plasma") + 
+plot_usmap(data=clean_dta, values="Number_In_State", regions="state") +
+  scale_fill_viridis_c(name="Density", option="plasma") + 
   theme_minimal() +
-  labs(title = "Observations Based on State Counts")
+  labs(title="Observations Based on State Counts")
 
 ```
 #### Based on the density map visualization, it is apparent the most viable observations were mostly from California, followed by Texas, Florida, and New York. Using the color scheme "plasma", the states are shown from the highest count to the lowest count from the following colors: yellow, orange, red, fuchsia, and dark purple.
@@ -357,19 +357,19 @@ plot_usmap(data = clean_dta, values = "Number_In_State", regions = "state") +
 
 
 ```{r}
-dta_summary = clean_dta %>%
+dta_summary=clean_dta %>%
   group_by(state) %>%
   summarise(
-    Count_All = sum(Current_Health_Insurance == "All", na.rm = TRUE),
-    Total = n(),
-    Proportion_All = Count_All / Total
+    Count_All=sum(Current_Health_Insurance == "All", na.rm=TRUE),
+    Total=n(),
+    Proportion_All=Count_All / Total
   )
 
 # Plots the density map for respondents after cleaning the dataset based on state
-plot_usmap(data = dta_summary, values = "Proportion_All", regions = "state") +
-  scale_fill_viridis_c(name = "Density", option = "plasma") + 
+plot_usmap(data=dta_summary, values="Proportion_All", regions="state") +
+  scale_fill_viridis_c(name="Density", option="plasma") + 
   theme_minimal() +
-  labs(title = "Full Health Insurance Coverage Based on State") +
+  labs(title="Full Health Insurance Coverage Based on State") +
   theme(plot.title=element_text(size=10))
 ```
 #### Based on this density map visualization, it is apparent that the states with the highest amount of full health insurance coverage are the north east and west coast states, while many of the states in the south have lower full health insurance coverage rates with Texas having the lowest. Seeing this pattern, we believe that governor political affiliation will have an effect on one's health insurance status as west coast and north east states are generally Democratic, while the south tends to be more Republican.
@@ -385,7 +385,7 @@ summary(clean_dta$Household_Income_Continuous)
 
 ```{r}
 #Creating histogram for Household_Income_Continuous
-hist(clean_dta$Household_Income_Continuous,breaks = 100 ,main="Continuous Household Income Histogram", xlab = "Household Income")
+hist(clean_dta$Household_Income_Continuous,breaks=100 ,main="Continuous Household Income Histogram", xlab="Household Income")
 
 ```
 
@@ -397,12 +397,12 @@ hist(clean_dta$Household_Income_Continuous,breaks = 100 ,main="Continuous Househ
 
 ```{r}
 #Creating logarithmic scale histogram for Household_Income_Continuous
-ggplot(clean_dta, aes(x = Household_Income_Continuous)) +
-  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
-  scale_x_log10(labels = comma) +
+ggplot(clean_dta, aes(x=Household_Income_Continuous)) +
+  geom_histogram(bins=30, fill="blue", alpha=0.7) +
+  scale_x_log10(labels=comma) +
   theme_minimal() +
-  labs(title = "Histogram of Household Income (Log Scale)",
-       x = "Household Income (log scale)", y = "Frequency")
+  labs(title="Histogram of Household Income (Log Scale)",
+       x="Household Income (log scale)", y="Frequency")
 
 ```
 
@@ -426,19 +426,19 @@ hist(clean_dta$Household_Number, main="Household Number Histogram", xlab="Househ
 
 ```{r}
 #Creating tables and proportion tables for Current_Health_Insurance
-current_household_income_cat_table = table(clean_dta$Household_Income_Categorical_Factor)
+current_household_income_cat_table=table(clean_dta$Household_Income_Categorical_Factor)
 current_household_income_cat_table ; prop.table(current_household_income_cat_table)
 ```
 
 
 ```{r}
 #Function for creating barplots
-create_table_barplot = function(data, column_name, title){
-ggplot(data, aes_string(x = column_name, fill = column_name)) +
+create_table_barplot=function(data, column_name, title){
+ggplot(data, aes_string(x=column_name, fill=column_name)) +
   geom_bar() +  
   theme_minimal() +
-  labs(title = title, x = "Category", y = "Frequency")+
-  theme(axis.text.x = element_blank())
+  labs(title=title, x="Category", y="Frequency")+
+  theme(axis.text.x=element_blank())
 }
 ```
 
@@ -460,34 +460,34 @@ clean_dta$Binary_Household_Income=factor(clean_dta$Binary_Household_Income,
 
 ```{r}
 # Function to create a bar chart with counts and percentages
-create_bar_chart = function(data, column_name, title) {
-  df = as.data.frame(table(data[[column_name]]))
-  colnames(df) = c("Category", "Count")
+create_bar_chart=function(data, column_name, title) {
+  df=as.data.frame(table(data[[column_name]]))
+  colnames(df)=c("Category", "Count")
   
   # Compute percentage
-  df$Percentage = round(df$Count / sum(df$Count) * 100, 1)
+  df$Percentage=round(df$Count / sum(df$Count) * 100, 1)
   
-  ggplot(df, aes(x = Category, y = Count, fill = Category)) +
-    geom_bar(stat = "identity", width = 0.6, color = "black") +
-    geom_text(aes(label = paste0(Percentage, "%")), vjust = -0.5, size = 3) +
-    expand_limits(y = max(df$Count) * 1.2) + 
-    labs(title = title, x = column_name, y = "Count") +
+  ggplot(df, aes(x=Category, y=Count, fill=Category)) +
+    geom_bar(stat="identity", width=0.6, color="black") +
+    geom_text(aes(label=paste0(Percentage, "%")), vjust=-0.5, size=3) +
+    expand_limits(y=max(df$Count) * 1.2) + 
+    labs(title=title, x=column_name, y="Count") +
     theme_minimal() +
     theme(
-      legend.position = "none",
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      plot.title = element_text(size = 7, hjust = 0.5),
-      axis.title.x = element_blank() 
+      legend.position="none",
+      axis.text.x=element_text(angle=45, hjust=1),
+      plot.title=element_text(size=7, hjust=0.5),
+      axis.title.x=element_blank() 
     )
 }
 
 # Create bar charts
-Metro_Status_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Metro_Status", "Metro Status")
-Current_Health_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Health_Insurance", "Current Health Insurance")
-Current_Public_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance")
-Current_Private_Insurance_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Private_Insurance", "Current Private Insurance")
-Current_Medicaid_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Current_Medicaid", "Current Medicaid")
-Current_Binary_Household_Income_Distribution_Bar_Chart = create_bar_chart(clean_dta, "Binary_Household_Income", "Binary Household Income")
+Metro_Status_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Metro_Status", "Metro Status")
+Current_Health_Insurance_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Current_Health_Insurance", "Current Health Insurance")
+Current_Public_Insurance_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Current_Public_Insurance", "Current Public Insurance")
+Current_Private_Insurance_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Current_Private_Insurance", "Current Private Insurance")
+Current_Medicaid_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Current_Medicaid", "Current Medicaid")
+Current_Binary_Household_Income_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Binary_Household_Income", "Binary Household Income")
 Political_Affliation_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Political_Party", "Political Party")
 
 grid.arrange(
@@ -498,23 +498,24 @@ grid.arrange(
   Current_Medicaid_Distribution_Bar_Chart,
   Current_Binary_Household_Income_Distribution_Bar_Chart,
   Political_Affliation_Distribution_Bar_Chart,
-  ncol = 4,
-  nrow = 2)
+  ncol=4,
+  nrow=2)
 
 ```
-### Metro Status: A majority of the population in this study live in metropolitan areas compared to non-metropolitan areas. 
 
-### Current Health Insurance: Majority of the households have full health insurance coverage, with a smaller percentage having some or no health insurance coverage. 
+#### Metro Status: A majority of the population in this study live in metropolitan areas compared to non-metropolitan areas. 
 
-### Current Public Insurance: About half the population in this study have no public insurance. 16.6% of the households have some public health insurance coverage, and 32.7% having full public insurance coverage. 
+#### Current Health Insurance: Majority of the households have full health insurance coverage, with a smaller percentage having some or no health insurance coverage. 
 
-### Current Private Insurance: 55.7% of the households have full private health insurance coverage, 15.7% have some private health insurance coverage, and 28.7% have no private health insurance coverage. 
+#### Current Public Insurance: About half the population in this study have no public insurance. 16.6% of the households have some public health insurance coverage, and 32.7% having full public insurance coverage. 
 
-### Current Medicaid: Majority of households have no medicaid coverage, 10% have some medicaid coverage, and 10% have full medicaid coverage. 
+#### Current Private Insurance: 55.7% of the households have full private health insurance coverage, 15.7% have some private health insurance coverage, and 28.7% have no private health insurance coverage. 
 
-### Binary Household Income: As expected, because we dichotomized the variable with the median, half of the households have income below $82,500 and the other half earning $82,500 and more. 
+#### Current Medicaid: Majority of households have no medicaid coverage, 10% have some medicaid coverage, and 10% have full medicaid coverage. 
 
-### Political Party: In the population in this study, 48.6% of the households live in a state with a Democratic governor, while 51.4% of the households live in a state with a Republican governor. 
+#### Binary Household Income: As expected, because we dichotomized the variable with the median, half of the households have income below $82,500 and the other half earning $82,500 and more. 
+
+#### Political Party: In the population in this study, 48.6% of the households live in a state with a Democratic governor, while 51.4% of the households live in a state with a Republican governor. 
 
 
 ### <u>**How does state-level political affiliation influence health insurance coverage among households in the United States in 2024, controlling for household income?**</u>
@@ -564,22 +565,22 @@ results_df=coefs %>%
   left_join(zvals[, c("Var1", "Var2", "z_value")], by=c("Var1", "Var2"))
 
 # Step 2: Compute OR and 95% CI
-results_df = results_df %>%
+results_df=results_df %>%
   mutate(
-    Outcome = as.character(Var1),
-    Variable = Var2 %>%
+    Outcome=as.character(Var1),
+    Variable=Var2 %>%
       gsub("Binary_Household_Incomebelow \\$82,500", "Income < $82,500", .) %>%
       gsub("Binary_Household_Income\\$82,500 and over", "Income ≥ $82,500", .) %>%
       gsub("Political_PartyRepublican", "Republican", .),
-    OR = exp(Estimate),
-    CI_lower = exp(Estimate - 1.96 * SE),
-    CI_upper = exp(Estimate + 1.96 * SE),
-    CI = paste0("(", round(CI_lower, 3), ", ", round(CI_upper, 3), ")"),
-    z_value = round(z_value, 3),
-    p_value = 2 * (1 - pnorm(abs(z_value))),
-    p_value = format.pval(p_value, digits=4, eps=.Machine$double.eps),
-    p_value = gsub("<", "&lt;", p_value),
-    Variable = paste0("   ", Variable)
+    OR=exp(Estimate),
+    CI_lower=exp(Estimate - 1.96 * SE),
+    CI_upper=exp(Estimate + 1.96 * SE),
+    CI=paste0("(", round(CI_lower, 3), ", ", round(CI_upper, 3), ")"),
+    z_value=round(z_value, 3),
+    p_value=2 * (1 - pnorm(abs(z_value))),
+    p_value=format.pval(p_value, digits=4, eps=.Machine$double.eps),
+    p_value=gsub("<", "&lt;", p_value),
+    Variable=paste0("   ", Variable)
   ) %>%
   select(Outcome, Variable, OR, CI, z_value, p_value)
 
@@ -639,11 +640,11 @@ forest_plot
 #ggsave("forest_plot_health_insurance.png", plot=p, width=8, height=5, dpi=300, bg="white")
 ```
 
-### The multinomial model results in log odds ratio, so we exponentiated the results to find the odds ratio (OR) for easier interpretation. The table displays the OR, 95% confidence intervals, z-values, and p-values. All the variables were found to be significant with a p-value below 2.2e-6.
+#### The multinomial model results in log odds ratio, so we exponentiated the results to find the odds ratio (OR) for easier interpretation. The table displays the OR, 95% confidence intervals, z-values, and p-values. All the variables were found to be significant with a p-value below 2.2e-6.
 
-### When focusing on income, households with income below $82,500 have 4.119 times higher odds of having no health insurance coverage compared to having full coverage, relative to households with income above $82,500. Likewise, households with income below $82,500 are 31.6% more likely to have some health insurance compared to having full coverage, relative to households with income above $82,500. This is consistent with previous findings done by other studies. 
+#### When focusing on income, households with income below $82,500 have 4.119 times higher odds of having no health insurance coverage compared to having full coverage, relative to households with income above $82,500. Likewise, households with income below $82,500 are 31.6% more likely to have some health insurance compared to having full coverage, relative to households with income above $82,500. This is consistent with previous findings done by other studies. 
 
-### When focusing on political affiliation, households who live in a Republican state are 49.5% more likely to have no health insurance coverage compared to having full coverage, relative to households who live in Democratic states. Additionally, households who live in a Republican state are 31.4% more likely to have some health insurance coverage compared to having full coverage, relative to households who live in Democratic states.
+#### When focusing on political affiliation, households who live in a Republican state are 49.5% more likely to have no health insurance coverage compared to having full coverage, relative to households who live in Democratic states. Additionally, households who live in a Republican state are 31.4% more likely to have some health insurance coverage compared to having full coverage, relative to households who live in Democratic states.
 
 
 ## <u>**What Does State Political Affiliation Inform State Level Health Insurance Policies:**</u>

@@ -1,5 +1,4 @@
-# Project Name
-Insights into Health Insurance Disparities Based on State-Level Political Affiliation
+# Insights into Health Insurance Disparities Based on State-Level Political Affiliation
 
 ### Authors
 * Richard Qin, Sean Lee, Kenneth Lim

@@ -24,24 +24,9 @@ The project aims to better understand the role of state-level political parties 
 Is there a strong correlation between the state-level political party and health insurance coverage? The project aims to uncover this question in-depth by exploring the Annual Social and Economic Supplement (ASEC) 2024 from the U.S. Census Bureau and the Bureau of Labor Statistics alongside the KFF dataset that provides information regarding each state’s political affiliation. The analysis first utilizes bar graphs to highlight summary statistics before using a multinomial regression analysis with household income and party affiliation. Following the multinomial regression analysis, an odds ratio value was computed for each of the given scenarios to provide more insight into the specific probabilities. However, after completing the analysis, the next issue that arose was confounding variables, which may influence the healthcare insurance coverage. Specifically, looking into employment information, the highest level of education, and an individual’s current health status can yield more insight into insurance information. With this in mind, the current U.S. Census Bureau does not provide additional information on individuals’ health status, which may require additional datasets to be imported.
 
 ## Getting Started
-
-<<<<<<< HEAD
 1. Clone this repository (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
 2. Raw Data is being kept `/my-project-EDA/data/asecpub24csv` within this repo.    
 3. Data processing/analysis scripts are being kept `EDA_Code_Notebook.Rmd`
-=======
-1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
-2. Raw Data is being kept `/my-project-EDA/data/asecpub24csv` within this repo.    
-1. Open the `EDA_Project.Rproj` file in RStudio.
-2. In the R Console, run the following commands:
-
-```r
-install.packages("renv")
-renv::restore()
-```
-
-4. Data processing/transformation scripts are being kept `EDA_Code_Notebook.Rmd`
->>>>>>> 023a08bfd2de66ff0a8e0c37af9a52422e880e13
 
 ## Directory Structure
 ```

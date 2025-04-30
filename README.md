@@ -25,24 +25,9 @@ Is there a strong correlation between the state-level political party and health
 
 ## Getting Started
 
-1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
+1. Clone this repository (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
 2. Raw Data is being kept `/my-project-EDA/data/asecpub24csv` within this repo.    
-3. Open the `EDA_Project.Rproj` file in RStudio.
-4. In the R Console, run the following commands:
-
-```r
-install.packages("renv")
-renv::restore()
-
-renv::hydrate()
-
-#Select 1
-
-renv::status()
-```
-
-
-5. Data processing/transformation scripts are being kept `EDA_Code_Notebook.Rmd`
+4. Data processing/analysis scripts are being kept `EDA_Code_Notebook.Rmd`
 
 ## Directory Structure
 ```

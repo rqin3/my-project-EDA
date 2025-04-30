@@ -194,7 +194,7 @@ filtered_dta=inner_join(filtered_dta, party, by=c("State_Name"="Location"))
 ## <u>**Removing the Unknown Variables:**</u>
 #### The resulting data is cleaned further by removing rows where the data is unknown for metro status, medicaid status, and family income. The function named remove_part includes three parameters: data, column_name, and value. The value parameter corresponds to what "unknown" is coded as for each variable respectively. It then counts how many rows for each variable has this value, and if it is greater than 0, it will remove them from the original filtered dataset. 
 
-####For each of the variables, the unknown is defined differently based on the codebook. The Metro Status defines unknowns as the value 3, the household number defined 0 as non-interviewed household, all the different insurance policies defined unknown as 0, and for all the household income values that were negative were removed. Thus, the function can adjust to each of the corresponding values to properly eliminate all unknowns.
+#### For each of the variables, the unknown is defined differently based on the codebook. The Metro Status defines unknowns as the value 3, the household number defined 0 as non-interviewed household, all the different insurance policies defined unknown as 0, and for all the household income values that were negative were removed. Thus, the function can adjust to each of the corresponding values to properly eliminate all unknowns.
 
 ```{r}
 # Function to remove the unknowns from the dataset
@@ -341,6 +341,7 @@ plot_usmap(data=clean_dta, values="Number_In_State", regions="state") +
   labs(title="Observations Based on State Counts")
 
 ```
+
 #### Based on the density map visualization, it is apparent the most viable observations were mostly from California, followed by Texas, Florida, and New York. Using the color scheme "plasma", the states are shown from the highest count to the lowest count from the following colors: yellow, orange, red, fuchsia, and dark purple.
 
 #### However, the remainder of the states appear to fall less than 4,000 observations in each of the observations based on the colors of the map. Thus, the map indicates that there may be some regional dependency from the state's location as there is much more data from California and Texas relative to other states.
@@ -364,6 +365,7 @@ plot_usmap(data=dta_summary, values="Proportion_All", regions="state") +
   labs(title="Full Health Insurance Coverage Based on State") +
   theme(plot.title=element_text(size=10))
 ```
+
 #### Based on this density map visualization, it is apparent that the states with the highest amount of full health insurance coverage are the north east and west coast states, while many of the states in the south have lower full health insurance coverage rates with Texas having the lowest. Seeing this pattern, we believe that governor political affiliation will have an effect on one's health insurance status as west coast and north east states are generally Democratic, while the south tends to be more Republican.
 
 ### Current Household Income (Continuous Numerical) Table and Status Distribution:
@@ -439,6 +441,7 @@ ggplot(data, aes_string(x=column_name, fill=column_name)) +
 ```{r}
 create_table_barplot(clean_dta, "Household_Income_Categorical_Factor", "Bar Plot of Current Household Income")
 ```
+
 #### Seeing how skewed the continuous household income variable is, we decided to create a bar plot of current household income. Due to the numerous number of categories, the table displaying the frequencies and proportions is hard to interpret. The barplot is particularly useful here. Interestingly, the category displaying an income value of $100,000 and over has over 20,000 counts, while the rest of the categories have roughly 1,000 counts or less. Based on this information, we can conclude there is a skew in the household incomes being represented from the dataset.
 
 #### When it comes to the categorical household income, due to the wide range of categories that makes it difficult to interpret, we decided to dichotomize the variable into two categories ("below $82,500", and "$82,500 and over"). We chose $82,500 as the threshold as it was the median, allowing us to ensure relatively equal sample sizes in both categories. 
@@ -515,7 +518,7 @@ grid.arrange(
 
 ### <u>**How does state-level political affiliation influence health insurance coverage among households in the United States in 2024, controlling for household income?**</u>
 
-### To test this research question, a multinomial logistic regression was ran to determine the odds ratio. This is because our outcome, Current Health Insurance, is categorical with three levels: "None", "Some", "All". Our primary explanatory variable is the state governor political party affiliation. We're controlling for household income in our model since prior studies have shown a strong correlation between household income and health insurance coverage. Additionally, dichotomizing income into our two groups, "below $82,500" and "$82,500 and over", helped create a balanced variable that makes the model easier to interpret. In the model, we set "$82,500 and over" as our reference group for household income and "Democrat" as our reference group for governor state political affiliation. Lastly, for the outcome of current health insurance, "All" was set as the baseline. This model would predict how state political affiliation and income are associated with the odds of having either no health insurance or partial insurance compared to full insurance. 
+#### To test this research question, a multinomial logistic regression was ran to determine the odds ratio. This is because our outcome, Current Health Insurance, is categorical with three levels: "None", "Some", "All". Our primary explanatory variable is the state governor political party affiliation. We're controlling for household income in our model since prior studies have shown a strong correlation between household income and health insurance coverage. Additionally, dichotomizing income into our two groups, "below $82,500" and "$82,500 and over", helped create a balanced variable that makes the model easier to interpret. In the model, we set "$82,500 and over" as our reference group for household income and "Democrat" as our reference group for governor state political affiliation. Lastly, for the outcome of current health insurance, "All" was set as the baseline. This model would predict how state political affiliation and income are associated with the odds of having either no health insurance or partial insurance compared to full insurance. 
 
 ```{r}
 #Releveling Binary_Household_Income so that $82,500 and over is the reference group

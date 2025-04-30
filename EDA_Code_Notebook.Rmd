@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo=TRUE)
 
 #### This exploratory analysis aims to combine these two large and complex datasets and prepare them to ask questions for future research purposes. Our group is primarily focused on the healthcare system, and more specifically, the various factors that influence a population's ability to access affordable healthcare. Due to the Variables such as State, political affiliation, the number of household members and household income may play a significant role in the access to healthcare.
 
-#### The dataset is read into the R environment using standard functions from the tidyverse library:
+#### The dataset is read into the R environment using standard functions from the readr library:
 
 ```{r}
 library(readr)

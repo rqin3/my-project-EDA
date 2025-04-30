@@ -27,7 +27,7 @@ Is there a strong correlation between the state-level political party and health
 
 1. Clone this repository (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
 2. Raw Data is being kept `/my-project-EDA/data/asecpub24csv` within this repo.    
-4. Data processing/analysis scripts are being kept `EDA_Code_Notebook.Rmd`
+3. Data processing/analysis scripts are being kept `EDA_Code_Notebook.Rmd`
 
 ## Directory Structure
 ```

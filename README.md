@@ -6,7 +6,7 @@ Insights into Health Insurance Disparities Based on State-Level Political Affili
 * Emory University
 
 ## Project Objective
-The project aims to better understand the role of state-level political parties in healthcare insurance coverage of constituents. Through the analysis, it unveils the connection between political party affiliation (Republican or Democratic) on United States residents using data from the United States Census. Moreover, the analysis provides a specific value associated with the likelihood based on the state residency’s governor political party. 
+The project aims to better understand the role of state-level political affiliation in healthcare insurance coverage of constituents. By comparing insurance coverage rates across states governed by Republican versus Democratic leadership, the study seeks to uncover systemic patterns in healthcare accessibility linked to political decision-making. Specifically, the analysis generates an empirical estimate of the likelihood of individuals having health insurance based on the political party affiliation of their state’s governor. 
 
 ### Methods Used
 * Data Exploration

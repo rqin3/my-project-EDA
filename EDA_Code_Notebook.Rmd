@@ -7,18 +7,6 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(readr)
-library(nnet)
-library(usmap)
-library(tools)
-library(gridExtra)
-library(scales)
-library(kableExtra)
-library(knitr)
-library(grid)
 ```
 
 # <u>**Analysis into Demographic Factors Influencing Access to Healthcare Insurance**</u>
@@ -36,6 +24,7 @@ library(grid)
 #### The dataset is read into the R environment using standard functions from the tidyverse library:
 
 ```{r}
+library(readr)
 data=read.csv("data/asecpub24csv/hhpub24.csv")
 
 dim(data)
@@ -158,6 +147,7 @@ dim(data)
 
 ```{r}
 #Selecting and renaming column titles
+library(dplyr)
 filtered_dta=data %>% 
   select(Metro_Status=GTMETSTA, 
          Household_Number=H_NUMPER,
@@ -343,6 +333,8 @@ state_dta
 clean_dta$state=tolower(clean_dta$State_Name)
 
 # Plots the density map for respondents after cleaning the dataset based on state
+library(usmap)
+library(ggplot2)
 plot_usmap(data=clean_dta, values="Number_In_State", regions="state") +
   scale_fill_viridis_c(name="Density", option="plasma") + 
   theme_minimal() +
@@ -397,6 +389,8 @@ hist(clean_dta$Household_Income_Continuous,breaks=100 ,main="Continuous Househol
 
 ```{r}
 #Creating logarithmic scale histogram for Household_Income_Continuous
+library(scales)
+
 ggplot(clean_dta, aes(x=Household_Income_Continuous)) +
   geom_histogram(bins=30, fill="blue", alpha=0.7) +
   scale_x_log10(labels=comma) +
@@ -490,6 +484,7 @@ Current_Medicaid_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Current_Med
 Current_Binary_Household_Income_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Binary_Household_Income", "Binary Household Income")
 Political_Affliation_Distribution_Bar_Chart=create_bar_chart(clean_dta, "Political_Party", "Political Party")
 
+library(gridExtra)
 grid.arrange(
   Metro_Status_Distribution_Bar_Chart,
   Current_Health_Insurance_Distribution_Bar_Chart,
@@ -529,6 +524,8 @@ clean_dta$Binary_Household_Income=relevel(clean_dta$Binary_Household_Income, ref
 clean_dta$Current_Health_Insurance=relevel(clean_dta$Current_Health_Insurance, ref="All")
 
 #Running multinomial regression
+library(nnet)  
+
 multinom_model=multinom(Current_Health_Insurance ~ Political_Party + Binary_Household_Income, data=clean_dta)
 summary_model=summary(multinom_model)
 summary_model
@@ -537,12 +534,13 @@ summary_model
 ```{r}
 #Calculating for p-values of the model
 z_values=summary_model$coefficients / summary_model$standard.errors
-p_values=2 * (1 - pnorm(abs(z_values)))
+p_values=2*(1 - pnorm(abs(z_values)))
 p_values
 ```
 
 ```{r}
 #Creating table of the multinomial logistic regression results
+library(grid)
 
 #Extract model outputs
 coefs=as.data.frame(as.table(summary_model$coefficients))
@@ -564,7 +562,7 @@ results_df=coefs %>%
   left_join(ses[, c("Var1", "Var2", "SE")], by=c("Var1", "Var2")) %>%
   left_join(zvals[, c("Var1", "Var2", "z_value")], by=c("Var1", "Var2"))
 
-# Step 2: Compute OR and 95% CI
+#Compute OR and 95% CI
 results_df=results_df %>%
   mutate(
     Outcome=as.character(Var1),
